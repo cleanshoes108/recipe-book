@@ -21,7 +21,7 @@ Rules
 - item is the ingredient itself, lower case, no amounts. note holds preparation ("finely chopped", "juice and zest", "drained"). group is the sub-list heading when the recipe has one (write it plainly, e.g. "Dressing", "To serve"), else null.
 - method is an array of steps, one per element, each a self-contained paragraph in the author's voice, trimmed of chatter and advertising. Keep every temperature, time and cue. Do not number them.
 - headnote: the author's introduction if there is one, condensed to at most three sentences; otherwise a plain one-sentence description of the dish. No marketing language.
-- serves: an integer. For "serves 4–6" use 4 and put "serves 4 to 6" in yieldNote. For "makes 12 muffins" use serves 12 and yieldNote "makes 12".
+- serves: an integer. yieldNote is empty unless there is a range or a "makes" quantity. For "serves 4–6" use 4 and put "serves 4 to 6" in yieldNote. For "makes 12 muffins" use serves 12 and yieldNote "makes 12".
 - course: one of ${COURSES.join(', ')}. cuisine: a short label or empty string.
 - tags: 3 to 6 short lower-case tags useful for finding the recipe later: the main ingredient, style ("one-pot", "traybake", "salad"), occasion ("weeknight", "make-ahead", "quick"), diet ("vegetarian", "vegan"), and the cuisine if clear. Do not repeat the course as a tag.
 - source: the book title or site name if known, otherwise empty string.
@@ -161,7 +161,8 @@ function tidy(r, fetchedFrom) {
     title: str(r.title),
     headnote: str(r.headnote),
     serves: Math.max(1, Math.round(num(r.serves) || 4)),
-    yieldNote: str(r.yieldNote),
+    // Drop notes that only restate the serves number ("serves 2").
+    yieldNote: /^(serves|feeds|for)\s*\d+$/i.test(str(r.yieldNote)) ? '' : str(r.yieldNote),
     prepMinutes: num(r.prepMinutes),
     cookMinutes: num(r.cookMinutes),
     course: COURSES.includes(r.course) ? r.course : 'main',

@@ -59,7 +59,7 @@ export async function recipeView({ id }) {
     'div',
     { class: 'serves' },
     h('button', { type: 'button', class: 'dial', 'aria-label': 'Fewer serves', onClick: () => setServes(serves - 1) }, iconMinus()),
-    h('div', { class: 'serves-readout' }, servesNum, h('span', { class: 'serves-label' }, recipe.yieldNote ? recipe.yieldNote : 'serves')),
+    h('div', { class: 'serves-readout' }, servesNum, h('span', { class: 'serves-label' }, recipe.yieldNote && !/^(serves|feeds|for)\s*\d+$/i.test(recipe.yieldNote.trim()) ? recipe.yieldNote : 'serves')),
     h('button', { type: 'button', class: 'dial', 'aria-label': 'More serves', onClick: () => setServes(serves + 1) }, iconPlus()),
     resetLink
   );
