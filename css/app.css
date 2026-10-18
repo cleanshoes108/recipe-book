@@ -390,6 +390,10 @@ h3 {
 .topbar .btn.text {
   padding: 8px 6px;
 }
+.topbar-actions {
+  display: flex;
+  gap: 18px;
+}
 
 /* ---------- Recipe ---------- */
 .hero {

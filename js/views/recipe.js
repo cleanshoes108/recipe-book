@@ -129,7 +129,12 @@ export async function recipeView({ id }) {
       'nav',
       { class: 'topbar' },
       h('a', { class: 'back', href: '#/' }, iconBack(), 'Recipes'),
-      h('a', { class: 'btn text', href: `#/edit/${recipe.id}` }, 'Edit')
+      h(
+        'div',
+        { class: 'topbar-actions' },
+        h('button', { type: 'button', class: 'btn text', onClick: () => shareRecipe(recipe, serves, base) }, 'Share'),
+        h('a', { class: 'btn text', href: `#/edit/${recipe.id}` }, 'Edit')
+      )
     ),
     url ? h('figure', { class: 'hero' }, h('img', { src: url, alt: recipe.title })) : null,
     h(
@@ -205,6 +210,59 @@ export async function recipeView({ id }) {
       )
     )
   );
+}
+
+// Plain-text version of the recipe, at the serves currently on the dial.
+export function recipeToText(recipe, serves, base) {
+  const factor = serves / base;
+  const lines = [recipe.title];
+  if (recipe.headnote) lines.push('', recipe.headnote);
+  const meta = [
+    recipe.yieldNote && !/^(serves|feeds|for)\s*\d+$/i.test(recipe.yieldNote.trim()) && serves === base ? recipe.yieldNote : `Serves ${serves}`,
+    recipe.prepMinutes ? `Prep ${minutesLabel(recipe.prepMinutes)}` : null,
+    recipe.cookMinutes ? `Cook ${minutesLabel(recipe.cookMinutes)}` : null,
+  ].filter(Boolean);
+  lines.push('', meta.join(' · '));
+
+  lines.push('', 'INGREDIENTS');
+  let group = null;
+  for (const ing of recipe.ingredients || []) {
+    const g = ing.group || null;
+    if (g !== group) {
+      group = g;
+      if (g) lines.push('', g);
+    }
+    const qty = scaleRecipeQty(ing.qty, factor, ing.unit);
+    const qtyMax = ing.qtyMax == null ? null : scaleRecipeQty(ing.qtyMax, factor, ing.unit);
+    const amount = formatAmount(qty, qtyMax, ing.unit);
+    lines.push(`• ${amount ? amount + ' ' : ''}${ing.item}${ing.note ? ', ' + ing.note : ''}`);
+  }
+
+  if (recipe.method?.length) {
+    lines.push('', 'METHOD');
+    recipe.method.forEach((s, i) => lines.push(`${i + 1}. ${s}`, ''));
+    lines.pop();
+  }
+  if (recipe.source) lines.push('', `From ${recipe.source}`);
+  return lines.join('\n');
+}
+
+async function shareRecipe(recipe, serves, base) {
+  const text = recipeToText(recipe, serves, base);
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: recipe.title, text });
+      return;
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('Recipe copied');
+  } catch (e) {
+    toast('Sharing is not available here');
+  }
 }
 
 function sourceNode(source) {
