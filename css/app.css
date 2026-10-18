@@ -600,6 +600,10 @@ h3 {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
+.btn.shop {
+  margin-top: 18px;
+  width: 100%;
+}
 .ing-group {
   font-size: 1.1rem;
   font-style: italic;

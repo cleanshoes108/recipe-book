@@ -1,5 +1,5 @@
 // Service worker: keeps the app shell available offline. Recipes themselves live in IndexedDB.
-const VERSION = 'recipes-v3';
+const VERSION = 'recipes-v4';
 const SHELL = [
   './',
   'index.html',

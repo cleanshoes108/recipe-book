@@ -174,7 +174,16 @@ export async function recipeView({ id }) {
     h(
       'div',
       { class: 'columns' },
-      h('section', { class: 'col-ingredients' }, h('h2', {}, 'Ingredients'), dial, ingList),
+      h(
+        'section',
+        { class: 'col-ingredients' },
+        h('h2', {}, 'Ingredients'),
+        dial,
+        ingList,
+        recipe.ingredients?.length
+          ? h('button', { type: 'button', class: 'btn shop', onClick: () => copyShoppingList(recipe, serves, base) }, 'Copy shopping list')
+          : null
+      ),
       h(
         'section',
         { class: 'col-method' },
@@ -210,6 +219,54 @@ export async function recipeView({ id }) {
       )
     )
   );
+}
+
+// Shopping list: one line per ingredient, no bullets, so Notes can turn every line into a checklist item.
+const SHOPPING_HINT = /optional|not |to taste|to serve|about|approx|or |plus|tins?\b|large|small|ripe|fresh/i;
+export function shoppingList(recipe, serves, base) {
+  const factor = serves / base;
+  const merged = new Map();
+  for (const ing of recipe.ingredients || []) {
+    const item = String(ing.item || '').trim();
+    if (!item || /^(cold |warm |boiling |hot )?water$/i.test(item)) continue;
+    const key = item.toLowerCase() + '|' + (ing.unit || '');
+    const prev = merged.get(key);
+    const note = ing.note && SHOPPING_HINT.test(ing.note) ? ing.note : null;
+    if (prev) {
+      if (prev.qty != null && ing.qty != null) prev.qty += ing.qty;
+      else if (prev.qty == null) prev.qty = ing.qty;
+      if (prev.qtyMax != null || ing.qtyMax != null) prev.qtyMax = (prev.qtyMax ?? prev.qty ?? 0) + (ing.qtyMax ?? ing.qty ?? 0);
+      if (!prev.note && note) prev.note = note;
+    } else {
+      merged.set(key, { item, unit: ing.unit || null, qty: ing.qty, qtyMax: ing.qtyMax, note });
+    }
+  }
+  const lines = [];
+  for (const m of merged.values()) {
+    const qty = scaleRecipeQty(m.qty, factor, m.unit);
+    const qtyMax = m.qtyMax == null ? null : scaleRecipeQty(m.qtyMax, factor, m.unit);
+    // "400 g" with a space, as Notes and most shopping lists write it.
+    const amount = formatAmount(qty, qtyMax, m.unit).replace(/(\d)(g|kg|ml|l)$/, '$1 $2');
+    const name = amount ? `${amount} ${m.item}` : m.item.charAt(0).toUpperCase() + m.item.slice(1);
+    lines.push(m.note ? `${name}, ${m.note}` : name);
+  }
+  return `${recipe.title}\n\n${lines.join('\n')}`;
+}
+
+async function copyShoppingList(recipe, serves, base) {
+  const text = shoppingList(recipe, serves, base);
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('Shopping list copied');
+  } catch (e) {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `${recipe.title}: shopping list`, text });
+      } catch (err) {
+        /* cancelled */
+      }
+    } else toast('Copying is not available here');
+  }
 }
 
 // Plain-text version of the recipe, at the serves currently on the dial.
