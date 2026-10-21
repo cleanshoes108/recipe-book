@@ -929,3 +929,141 @@ h3 {
     transition: none !important;
   }
 }
+
+/* ---------- Print: one recipe on A4 ---------- */
+@page {
+  size: A4;
+  margin: 14mm 15mm 16mm;
+}
+@media print {
+  html,
+  body {
+    background: #fff;
+    font-size: 10.5pt;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .page,
+  .page.recipe {
+    max-width: none;
+    padding: 0;
+  }
+  .topbar,
+  .recipe-foot,
+  .dial,
+  .serves .linklike,
+  .btn.shop,
+  .notes,
+  #toast,
+  .stars:not(:has(.filled)) {
+    display: none !important;
+  }
+  .hero {
+    margin: 0 0 6mm;
+    aspect-ratio: auto;
+    height: 62mm;
+    border-radius: 0;
+  }
+  .recipe-head {
+    padding-top: 0;
+  }
+  .recipe-head h1 {
+    font-size: 26pt;
+  }
+  .headnote {
+    font-size: 11pt;
+    margin-top: 3mm;
+  }
+  .facts {
+    margin-top: 4mm;
+    padding: 2mm 0;
+  }
+  .star {
+    padding: 0 1px;
+  }
+  .star .icon {
+    width: 13px;
+    height: 13px;
+  }
+  .tags {
+    margin-top: 3mm;
+    gap: 2mm 5mm;
+  }
+  .tag {
+    font-size: 9pt;
+  }
+  .code {
+    width: 18px;
+    height: 18px;
+    font-size: 0.55rem;
+  }
+  .columns {
+    display: grid;
+    grid-template-columns: 70mm 1fr;
+    gap: 9mm;
+    margin-top: 6mm;
+    align-items: start;
+  }
+  .col-method {
+    margin-top: 0;
+  }
+  .columns h2 {
+    font-size: 15pt;
+    margin-bottom: 2mm;
+  }
+  .serves {
+    margin: 0 0 2mm;
+  }
+  .serves-num {
+    font-size: 15pt;
+  }
+  .serves-label {
+    font-size: 11pt;
+  }
+  .ing {
+    grid-template-columns: 4.6em 1fr;
+    gap: 2mm;
+    padding: 1mm 0;
+    break-inside: avoid;
+  }
+  .ing-amount,
+  .ing-item {
+    font-size: 9.5pt;
+    line-height: 1.4;
+  }
+  /* Ticks and finished steps are for the kitchen, not the page. */
+  .ing .ing-amount,
+  .ing .ing-item,
+  .step p,
+  .step .step-num {
+    color: var(--ink) !important;
+    text-decoration: none !important;
+  }
+  .step .step-num {
+    color: var(--accent) !important;
+  }
+  .ing-group {
+    font-size: 11pt;
+    margin: 4mm 0 0;
+  }
+  .step {
+    grid-template-columns: 8mm 1fr;
+    padding: 0 0 3mm;
+    break-inside: avoid;
+  }
+  .step-num {
+    font-size: 15pt;
+  }
+  .step p {
+    font-size: 10.5pt;
+    line-height: 1.5;
+    max-width: none;
+  }
+  .source {
+    margin-top: 5mm;
+    font-size: 8.5pt;
+  }
+  .source a {
+    text-decoration: none;
+  }
+}

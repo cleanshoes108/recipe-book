@@ -132,6 +132,7 @@ export async function recipeView({ id }) {
       h(
         'div',
         { class: 'topbar-actions' },
+        h('button', { type: 'button', class: 'btn text', onClick: () => window.print() }, 'Print'),
         h('button', { type: 'button', class: 'btn text', onClick: () => shareRecipe(recipe, serves, base) }, 'Share'),
         h('a', { class: 'btn text', href: `#/edit/${recipe.id}` }, 'Edit')
       )
