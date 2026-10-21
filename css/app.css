@@ -930,6 +930,38 @@ h3 {
   }
 }
 
+/* Print preview sheet */
+.print-sheet {
+  background: var(--paper);
+  width: min(100%, 420px);
+  max-height: calc(100dvh - 48px);
+  overflow: hidden;
+  padding: 18px 18px 8px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+.print-pages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 120px;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.print-page {
+  width: 100%;
+  height: auto;
+  flex: none;
+  border: 1px solid var(--rule);
+}
+.print-sheet .btn.text {
+  align-self: center;
+}
+
 /* ---------- Print: one recipe on A4 ---------- */
 @page {
   size: A4;

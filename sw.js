@@ -1,5 +1,5 @@
 // Service worker: keeps the app shell available offline. Recipes themselves live in IndexedDB.
-const VERSION = 'recipes-v5';
+const VERSION = 'recipes-v6';
 const SHELL = [
   './',
   'index.html',
@@ -12,6 +12,7 @@ const SHELL = [
   'js/search.js',
   'js/ui.js',
   'js/quantities.js',
+  'js/printpdf.js',
   'js/views/library.js',
   'js/views/recipe.js',
   'js/views/add.js',

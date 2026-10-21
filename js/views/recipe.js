@@ -4,6 +4,7 @@ import { h, iconBack, iconMinus, iconPlus, iconStar, confirmDialog, toast, navig
 import { formatAmount, scaleRecipeQty, minutesLabel } from '../quantities.js';
 import { tagColour } from '../model.js';
 import { code } from './library.js';
+import { renderRecipePages, canvasesToPdf } from '../printpdf.js';
 
 export async function recipeView({ id }) {
   const recipe = await getRecipe(id);
@@ -132,7 +133,7 @@ export async function recipeView({ id }) {
       h(
         'div',
         { class: 'topbar-actions' },
-        h('button', { type: 'button', class: 'btn text', onClick: () => window.print() }, 'Print'),
+        h('button', { type: 'button', class: 'btn text', onClick: () => openPrint(recipe, serves, base) }, 'Print'),
         h('button', { type: 'button', class: 'btn text', onClick: () => shareRecipe(recipe, serves, base) }, 'Share'),
         h('a', { class: 'btn text', href: `#/edit/${recipe.id}` }, 'Edit')
       )
@@ -220,6 +221,52 @@ export async function recipeView({ id }) {
       )
     )
   );
+}
+
+// Print: build an A4 PDF, preview it, then hand it to the share sheet (which has Print).
+async function openPrint(recipe, serves, base) {
+  const canShareFiles = (f) => navigator.canShare && navigator.canShare({ files: [f] });
+  const probe = new File([new Uint8Array(1)], 'x.pdf', { type: 'application/pdf' });
+  if (!canShareFiles(probe)) {
+    // Desktop browsers: the normal print dialog, styled by the print CSS.
+    window.print();
+    return;
+  }
+
+  const pagesWrap = h('div', { class: 'print-pages' }, h('p', { class: 'status' }, 'Preparing the page…'));
+  const action = h('button', { type: 'button', class: 'btn primary wide', disabled: true }, 'Print or save PDF');
+  const close = () => overlay.remove();
+  const overlay = h(
+    'div',
+    { class: 'overlay print-overlay', onClick: (e) => e.target === overlay && close() },
+    h(
+      'div',
+      { class: 'print-sheet', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Print recipe' },
+      pagesWrap,
+      action,
+      h('button', { type: 'button', class: 'btn text', onClick: close }, 'Cancel')
+    )
+  );
+  document.body.appendChild(overlay);
+
+  try {
+    const canvases = await renderRecipePages(recipe, serves, base, photoUrl(recipe));
+    const pdf = await canvasesToPdf(canvases);
+    const name = (recipe.title || 'Recipe').replace(/[\\/:*?"<>|]+/g, '').trim() || 'Recipe';
+    const file = new File([pdf], `${name}.pdf`, { type: 'application/pdf' });
+    pagesWrap.replaceChildren(...canvases.map((c) => Object.assign(c, { className: 'print-page' })));
+    action.disabled = false;
+    action.onclick = async () => {
+      try {
+        await navigator.share({ files: [file], title: recipe.title });
+        close();
+      } catch (e) {
+        if (e.name !== 'AbortError') toast('Could not open the share sheet');
+      }
+    };
+  } catch (err) {
+    pagesWrap.replaceChildren(h('p', { class: 'error' }, err.message || 'Could not prepare the page.'));
+  }
 }
 
 // Shopping list: one line per ingredient, no bullets, so Notes can turn every line into a checklist item.
